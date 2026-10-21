@@ -1,0 +1,4 @@
+This directory is the public, encrypted Sydney Foundation Course Portal. No learner page may be
+written here in plaintext. The portal builders refuse to write plaintext HTML into any
+directory holding this file. Pages are authored in the private learner-source tree and
+published with backend/tools/build_site_release.mjs.

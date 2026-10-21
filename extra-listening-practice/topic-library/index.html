@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Sydney Foundation Course Portal</title>
+  <style>
+:root{--ink:#182732;--muted:#64717a;--paper:#f3f1ec;--card:#fff;--line:#d7dbdc;
+  --navy:#173a59;--blue:#1769aa;--orange:#a74818;--shadow:0 14px 38px rgba(22,36,45,.10)}
+*{box-sizing:border-box}
+html{background:var(--paper);color:var(--ink);-webkit-text-size-adjust:100%}
+body{margin:0;font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.55}
+.shell{width:min(560px,calc(100% - 28px));margin:auto;padding:52px 0 64px}
+.kicker{color:var(--orange);font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+h1{margin:8px 0 10px;font-size:clamp(26px,5vw,38px);line-height:1.1;letter-spacing:-.03em;color:var(--navy)}
+.lede{margin:0;color:var(--muted);font-size:15px}
+.status{margin:22px 0 0;padding:16px 18px;border:1px solid var(--line);border-radius:14px;
+  background:var(--card);box-shadow:var(--shadow)}
+.status h2{margin:0 0 6px;color:var(--navy);font-size:18px}
+.status p{margin:0;color:var(--muted);font-size:15px}
+.status.bad{border-color:#d9b1a4;background:#fdf3ef}
+.status.bad h2{color:var(--orange)}
+form{margin:16px 0 0;padding:16px 18px;border:1px solid var(--line);border-radius:14px;
+  background:var(--card);box-shadow:var(--shadow)}
+label{display:block;font-size:14px;font-weight:800;color:var(--navy)}
+input[type=password]{display:block;width:100%;margin:8px 0 0;padding:11px 13px;font:inherit;
+  border:1px solid #9fb0bb;border-radius:10px;background:#fbfcfd;color:inherit}
+input[type=password]:focus-visible{outline:3px solid rgba(23,105,170,.35);outline-offset:1px}
+.remember{display:flex;gap:8px;align-items:center;margin:12px 0 0;font-size:14px;font-weight:400;
+  color:var(--muted)}
+button{margin:14px 0 0;font:inherit;font-weight:800;border:1px solid var(--navy);background:var(--navy);
+  color:#fff;border-radius:999px;padding:10px 20px;cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible{outline:3px solid rgba(23,105,170,.35);outline-offset:2px}
+footer{margin-top:26px;color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="kicker">Course portal</div>
+    <h1>Sydney Foundation Course Portal</h1>
+    <p class="lede">This page opens with the course code your teacher gave you.</p>
+    <div class="status" id="sfGateStatus" role="status" aria-live="polite"><h2>Opening</h2><p>One moment.</p></div>
+    <form id="sfGateForm" hidden>
+      <label for="sfGateCode">Course code</label>
+      <input type="password" id="sfGateCode" name="code" autocomplete="current-password" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+      <label class="remember"><input type="checkbox" id="sfGateRemember" checked> Remember this device for 30 days</label>
+      <button type="submit" id="sfGateSubmit">Open</button>
+    </form>
+    <noscript><p class="lede">This page needs JavaScript switched on.</p></noscript>
+    <footer>Course materials for review. The course code is shared for this course; it does not identify who is reading.</footer>
+  </main>
+  <script type="application/json" id="sfGateConfig">{"route":"extra-listening-practice/topic-library/index.html","payload":"index.enc","aad":"edwin/site/v1/extra-listening-practice/topic-library/index.html"}</script>
+  <script src="../../assets/sf-gate.js"></script>
+</body>
+</html>
