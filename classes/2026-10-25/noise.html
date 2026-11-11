@@ -34,54 +34,9 @@ button{margin:14px 0 0;font:inherit;font-weight:800;border:1px solid var(--navy)
   color:#fff;border-radius:999px;padding:10px 20px;cursor:pointer}
 button:disabled{opacity:.55;cursor:default}
 button:focus-visible{outline:3px solid rgba(23,105,170,.35);outline-offset:2px}
-footer{margin-top:26px;color:var(--muted);font-size:12px}
+footer{margin-top:26px;color:var(--muted);font-size:12px}/* responsive-retrofit:edwin-builder-20261104 */@media screen{code,kbd,samp,var,a[href]:not([href^="#"]){overflow-wrap:anywhere}p,li,dd,dt,td,th,figcaption,blockquote,summary,label{overflow-wrap:break-word}pre:not([hidden]){max-width:100%;overflow-x:auto}img:not([hidden]),picture,video,iframe,embed,object{max-width:100%}img:not([hidden]),video{height:auto}table{max-width:100%}input:not([hidden]),select:not([hidden]),textarea:not([hidden]),button:not([hidden]){max-width:100%}#ann-page,#ann-page *,#ann-stage,[id^="html-ink"],[id^="html-ink"] *{max-width:none}}@media screen and (max-width:820px){table:not([hidden]){display:block;width:max-content;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}}
+
   </style>
-<style>
-/* responsive-retrofit:core-20261104 */
-/* Window adaptation, screen only: a learner page follows the current window width and height,
-   including resizing an open window and browser zoom.
-   Reference: student-learning-portal-workflow/references/responsive-student-pages.md
-   Nothing here changes content, prompt or option order, question ids, learner answers, storage keys,
-   scoring, release gates, theme colours or the print rules: every rule is inside @media screen and
-   only decides how an existing box is sized. No page-wide transform, zoom or overflow hiding, and
-   nothing changes what is hidden or shown. */
-@media screen {
-  /* A long identifier, file name, URL or code token breaks only when it cannot fit; ordinary
-     words stay whole, in cells as well as in text. */
-  code, kbd, samp, var, a[href]:not([href^="#"]) { overflow-wrap: anywhere; }
-  p, li, dd, dt, td, th, figcaption, blockquote, summary, label { overflow-wrap: break-word; }
-  pre:not([hidden]) { max-width: 100%; overflow-x: auto; }
-
-  /* Figures and embeds stay inside their own container. Annotation ink is drawn at the coordinates
-     it was authored with, so <svg> and <canvas> are deliberately left out of this rule. */
-  img:not([hidden]), picture, video, iframe, embed, object { max-width: 100%; }
-  img:not([hidden]), video { height: auto; }
-
-  /* A table fits its pane: the columns wrap instead of widening the page. A table that is set to
-     span its pane still spans it, so nothing looks different where there was already room. */
-  table { max-width: 100%; }
-
-  /* Fields and buttons stay inside the window and keep a usable size. */
-  input:not([hidden]), select:not([hidden]), textarea:not([hidden]), button:not([hidden]) { max-width: 100%; }
-
-  /* A paper replica or ink overlay is positioned by coordinates inside its own scrolling frame:
-     it must keep its authored width. */
-  #ann-page, #ann-page *, #ann-stage, [id^="html-ink"], [id^="html-ink"] * { max-width: none; }
-}
-
-/* In a narrow window a wide table cannot be made legible by wrapping alone, so the sideways
-   scrolling belongs to the table's own box: neither the pane nor the page widens.
-   :not([hidden]) so that a table the page keeps hidden stays hidden. */
-@media screen and (max-width: 820px) {
-  table:not([hidden]) {
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-  }
-}
-</style>
 </head>
 <body>
   <main class="shell">
@@ -92,7 +47,7 @@ footer{margin-top:26px;color:var(--muted);font-size:12px}
     <form id="sfGateForm" hidden>
       <label for="sfGateCode">Course code</label>
       <input type="password" id="sfGateCode" name="code" autocomplete="current-password" autocapitalize="off" spellcheck="false" enterkeyhint="go">
-      <label class="remember"><input type="checkbox" id="sfGateRemember" checked> Remember this device for 30 days</label>
+      <label class="remember"><input type="checkbox" id="sfGateRemember" checked> Remember this browser</label>
       <button type="submit" id="sfGateSubmit">Open</button>
     </form>
     <noscript><p class="lede">This page needs JavaScript switched on.</p></noscript>

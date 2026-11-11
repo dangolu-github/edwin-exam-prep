@@ -1,8 +1,12 @@
 /* Sydney Foundation Course Portal · hand-in helper.
    Sends a finished practice set to the course service and waits for its receipt. There is no second
    destination: if the service cannot be reached, send() rejects, the page keeps the draft and the
-   request ID, and nothing is marked as submitted. The learner page shows only a receipt or a retry
-   message — never an answer, a mark or a key.
+   request ID, and nothing is marked as submitted.
+
+   After a hand-in the page shows the result the service returns (2026-11-11): each answer with ✓/✗,
+   the correct answer for a wrong item and the score, or that the work is waiting for the teacher.
+   Nothing is worked out on this page and no key is ever sent to it. The result is shown again on the
+   next visit from this browser, with the teacher's review once it is published.
 
    Since the 2026-10 move to the gated site the service accepts a hand-in only from a reader who has
    signed in, so every call carries the access token the gate put in this tab's sessionStorage. When
@@ -22,6 +26,7 @@
   // empty every send() fails closed rather than pretending the work was received.
   var SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzpIlJzwZvcr6Xp2ImgFFEHFUdWgxHsgAFSDerzEnQc0ZWh0eKtabn8GbuYzKdagXxI/exec';
   var REQUEST_PREFIX = 'sf02-handin-request:';
+  var DONE_PREFIX = 'sf02-handin-done:';
   var PREVIEW_KEY = 'sf02-tp';
   var ACCESS_KEY = 'sf02-access-v1';
   var DEVICE_KEY = 'sf02-device-v1';
@@ -275,8 +280,114 @@
       .then(function (receipt) {
         if (!receipt || !receipt.receiptId) throw new Error('The service did not confirm this hand-in.');
         forget(opts.key);
-        return { ok: true, via: 'service', receiptId: receipt.receiptId, duplicate: Boolean(receipt.duplicate) };
+        remember(opts.key, s, { requestId: id, assignmentId: opts.assignmentId, receiptId: receipt.receiptId });
+        if (receipt.result) showResult(opts.key, opts.assignmentId, receipt.result);
+        else refreshResult(opts.key);
+        return { ok: true, via: 'service', receiptId: receipt.receiptId, duplicate: Boolean(receipt.duplicate), result: receipt.result || null };
       });
+  }
+
+  // ---------------------------------------------------------------- result view
+  // The confirmed hand-in is remembered per page key, separately for a teacher preview, so a teacher's
+  // test result never shows on the learner's own visit in the same browser.
+
+  function doneKey(key, s) { return DONE_PREFIX + (s.preview ? 'preview:' : '') + key; }
+  function remember(key, s, record) { try { global.localStorage.setItem(doneKey(key, s), JSON.stringify(record)); } catch (e) { /* this visit only */ } }
+  function recall(key, s) { try { return JSON.parse(global.localStorage.getItem(doneKey(key, s)) || 'null'); } catch (e) { return null; } }
+
+  function esc(text) {
+    return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+  }
+  var MARK = { correct: '✓', incorrect: '✗', partial: '½', waiting: '…' };
+  var WORD = { correct: 'Correct', incorrect: 'Not correct', partial: 'Partly correct', waiting: 'Waiting for your teacher' };
+
+  function addStyles() {
+    var doc = global.document;
+    if (!doc || doc.getElementById('sfResultStyles')) return;
+    var style = doc.createElement('style');
+    style.id = 'sfResultStyles';
+    style.textContent = '.sf-result{margin:12px 0 0;padding:12px 14px;border:1px solid #cfd8dc;border-radius:12px;background:#fff;color:#182732;font-size:15px;line-height:1.5;max-width:100%;box-sizing:border-box}' +
+      '.sf-result h3{margin:0 0 6px;font-size:16px}.sf-result .sr-score{margin:0 0 8px;font-weight:700}.sf-result ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}' +
+      '.sf-result li{display:grid;grid-template-columns:2.2em minmax(0,1fr);gap:2px 8px;padding:6px 8px;border-radius:8px;background:#f5f7f8;overflow-wrap:anywhere}' +
+      '.sf-result .sr-mark{font-weight:800;text-align:center}.sf-result .correct .sr-mark{color:#17603d}.sf-result .incorrect .sr-mark{color:#9c2f2f}.sf-result .partial .sr-mark,.sf-result .waiting .sr-mark{color:#84570f}' +
+      '.sf-result .sr-line{grid-column:2}.sf-result small{color:#5d6b75}.sf-result .sr-note{margin:8px 0 0}' +
+      '@media (prefers-color-scheme:dark){.sf-result{background:#1d262c;color:#e8eef1;border-color:#3a4850}.sf-result li{background:#263239}.sf-result small{color:#a9b7bf}}' +
+      '@media print{.sf-result{break-inside:avoid}}';
+    (doc.head || doc.documentElement).appendChild(style);
+  }
+
+  function anchorFor(assignmentId) {
+    var doc = global.document;
+    if (!doc || typeof doc.querySelector !== 'function') return null;
+    var set = doc.querySelector('[data-assignment="' + String(assignmentId).replace(/"/g, '') + '"]');
+    var status = set ? set.querySelector('.submit-status') : doc.getElementById('submitStatus');
+    return status ? { parent: status.parentNode, after: status } : null;
+  }
+
+  function resultHtml(result) {
+    if (!result || result.state !== 'result') {
+      return '<h3>Submitted · 已提交</h3><p class="sr-score">' + esc((result && result.message) || 'Submitted. Waiting for your teacher to review.') +
+        (result && result.messageZh ? ' ' + esc(result.messageZh) : '') + '</p>';
+    }
+    var sc = result.score || {};
+    var rows = (result.items || []).map(function (item) {
+      var lines = '<span class="sr-line"><strong>' + esc(item.label || item.id) + '</strong> · ' + esc(WORD[item.status] || '') + '</span>' +
+        '<span class="sr-line"><small>Your answer:</small> ' + (item.answer ? esc(item.answer) : '—') + '</span>';
+      if (item.correction) lines += '<span class="sr-line"><small>Correct answer:</small> ' + esc(item.correction) + '</span>';
+      if (item.comment) lines += '<span class="sr-line"><small>Teacher:</small> ' + esc(item.comment) + '</span>';
+      return '<li class="' + esc(item.status) + '"><span class="sr-mark" aria-hidden="true">' + (MARK[item.status] || '') + '</span>' + lines + '</li>';
+    }).join('');
+    return '<h3>Your result · 你的结果</h3><p class="sr-score">Score ' + esc(sc.points) + ' / ' + esc(sc.outOf) +
+      (sc.waiting ? ' · ' + esc(sc.waiting) + ' answer' + (sc.waiting === 1 ? '' : 's') + ' waiting for your teacher' : '') + '</p>' +
+      (result.overall ? '<p class="sr-note"><small>Teacher:</small> ' + esc(result.overall) + '</p>' : '') + '<ol>' + rows + '</ol>';
+  }
+
+  function showResult(key, assignmentId, result) {
+    var at = anchorFor(assignmentId);
+    if (!at) return;
+    addStyles();
+    var box = null;
+    var kids = at.parent.children || [];
+    for (var i = 0; i < kids.length; i += 1) if (kids[i].getAttribute && kids[i].getAttribute('data-result-for') === key) box = kids[i];
+    if (!box) {
+      box = global.document.createElement('section');
+      box.className = 'sf-result';
+      box.setAttribute('data-result-for', key);
+      box.setAttribute('aria-live', 'polite');
+      at.parent.insertBefore(box, at.after.nextSibling);
+    }
+    box.innerHTML = resultHtml(result);
+  }
+
+  // Asks the service for the latest view of a hand-in this browser sent (the teacher's review included).
+  // Signed in as this tab's own identity; nothing is shown when the service cannot be reached.
+  function refreshResult(key) {
+    if (!configured()) return Promise.resolve(null);
+    var s = session();
+    if (s.broken || s.expired) return Promise.resolve(null);
+    var record = recall(key, s);
+    if (!record || !/^[a-f0-9]{32}$/.test(record.requestId || '')) return Promise.resolve(null);
+    return accessToken(s).then(function (token) {
+      if (!token && !s.token) return null;
+      return call({ action: 'getResult', requestId: record.requestId, assignmentId: record.assignmentId,
+        accessToken: token, previewToken: s.token || '' });
+    }).then(function (j) {
+      if (j && j.ok && j.found && j.result) showResult(key, record.assignmentId, j.result);
+      return j;
+    }).catch(function () { return null; });
+  }
+
+  function refreshAll() {
+    var s = session();
+    var prefix = DONE_PREFIX + (s.preview ? 'preview:' : '');
+    var keys = [];
+    try {
+      for (var i = 0; i < global.localStorage.length; i += 1) {
+        var k = global.localStorage.key(i);
+        if (k && k.indexOf(prefix) === 0 && k.slice(prefix.length).indexOf('preview:') !== 0) keys.push(k.slice(prefix.length));
+      }
+    } catch (e) { return; }
+    keys.forEach(function (key) { refreshResult(key); });
   }
 
   // The lookup is warmed only on a page that can actually hand work in, only once a sign-in is
@@ -302,11 +413,11 @@
     global.document.body.appendChild(note);
   }
 
-  function ready() { showPreviewNote(); warmOrigin(); }
+  function ready() { showPreviewNote(); warmOrigin(); refreshAll(); }
 
   if (global.document) {
     if (global.document.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', ready);
     else ready();
   }
-  global.SFPortalHandin = { send: send, isPreview: isPreview, isConfigured: configured };
+  global.SFPortalHandin = { send: send, isPreview: isPreview, isConfigured: configured, refreshResult: refreshResult };
 })(window);
